@@ -1,0 +1,182 @@
+---
+title: "A Summary Report for the palmerpenguins"
+date: today
+author: 統計114 簡玲萱
+format:
+ pdf:
+  geometry: "left=1cm,right=1cm,top=1cm,bottom=1cm"
+  include-in-header:
+    - text: |
+        \usepackage{setspace,relsize}
+mainfont: "Microsoft JhengHei UI"
+toc: true
+---
+
+\smaller
+# Summary Statistics
+```{r}
+#| output: asis
+library(palmerpenguins)
+data(package='palmerpenguins')
+penguins_data <- penguins_raw
+penguins_data[,c(3:5,8,14)] <- lapply(penguins_data[,c(3:5,8,14)], as.factor)
+
+library(Hmisc)
+latex(describe(penguins_data), file = "", caption.placement = "top")
+```
+
+\smaller
+# Descriptive statistics
+```{r}
+#| warning: false
+library(table1)
+str(penguins_data)
+```
+\smaller
+```{r}
+table1(~ `Culmen Length (mm)`+`Culmen Depth (mm)`+`Flipper Length (mm)`+
+         `Body Mass (g)`+`Delta 15 N (o/oo)`+`Delta 13 C (o/oo)`| Species,
+       data=penguins_data)
+table1(~ Region + Island +`Clutch Completion`+ Sex | Species, data=penguins_data)
+```
+
+\relsize{2}
+# Visualization
+## Missing value
+```{r}
+library(DataExplorer)
+plot_missing(penguins_data, missing_only=TRUE)
+```
+
+## Scatter plot
+__Culmen length and body mass for species__
+```{r}
+#| warning: false
+library(ggplot2)
+ggplot(data = penguins_data, aes(x = `Culmen Length (mm)`, y = `Body Mass (g)`)) +
+  geom_point(na.rm = TRUE) +
+  geom_point(aes(color = Species, shape = Species), size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+  labs(x = "Culmen length (mm)", y = "Body mass (g)", color = "Penguin species", shape = "Penguin species") +
+  theme(legend.position = c(0.2, 0.86))
+```
+```{r}
+#| warning: false
+ggplot(data = penguins_data, aes(x = `Culmen Length (mm)`, y = `Body Mass (g)`)) +
+  geom_point(aes(color = Sex)) +
+  scale_color_manual(values = c("pink","lightblue")) +
+  labs(x = "Flipper Length (mm)", y = "Body Mass (g)") +
+  theme(legend.position = 'bottom') +
+  facet_wrap(~Species) 
+```
+__Culmen length and depth for species__
+```{r}
+#| warning: false
+ggplot(data = penguins_data, aes(x = `Culmen Length (mm)`, y = `Culmen Depth (mm)`)) +
+  geom_point(na.rm = TRUE) +
+  geom_point(aes(color = Species, shape = Species), size = 3, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, aes(color = Species)) +
+  scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+  labs(x = "Culmen length (mm)", y = "Culmen Depth (mm)", 
+       color = "Penguin species", shape = "Penguin species") +
+  theme(legend.position = 'bottom')
+```
+__Culmen Length and depth for sex and species__
+```{r}
+#| warning: false
+ggplot(data = penguins_data, aes(x = `Culmen Length (mm)`, y = `Culmen Depth (mm)`)) +
+  geom_point(aes(color = Sex)) +
+  scale_color_manual(values = c("pink","lightblue")) +
+  labs(x = "Culmen Length (mm)", y = "Culmen Depth (mm)") +
+  theme(legend.position = 'bottom') +
+  facet_wrap(~Species)
+```
+
+## Bar plot
+```{r}
+#| warning: false
+library(gridExtra)
+p1 <- ggplot(data = penguins_data, aes(x = `Culmen Length (mm)`)) +
+        geom_histogram(aes(fill = Species), alpha = 0.5) +
+        scale_fill_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Culmen length (mm)", y = "Frequency", title = "Penguin culmen lengths")
+p2 <- ggplot(data = penguins_data, aes(x = `Culmen Depth (mm)`)) +
+        geom_histogram(aes(fill = Species), alpha = 0.5) +
+        scale_fill_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Culmen depth (mm)", y = "Frequency", title = "Penguin culmen depths")
+grid.arrange(p1,p2,nrow=2,ncol=1)
+p3 <- ggplot(data = penguins_data, aes(x = `Flipper Length (mm)`)) +
+        geom_histogram(aes(fill = Species), alpha = 0.5) +
+        scale_fill_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Flipper length (mm)", y = "Frequency", title = "Penguin flipper lengths")
+p4 <- ggplot(data = penguins_data, aes(x = `Body Mass (g)`)) +
+        geom_histogram(aes(fill = Species), alpha = 0.5) +
+        scale_fill_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Body mass (g)", y = "Frequency", title = "Penguin body mass")
+grid.arrange(p3,p4,nrow=2,ncol=1)
+p5 <- ggplot(data = penguins_data, aes(x = `Delta 15 N (o/oo)`)) +
+        geom_histogram(aes(fill = Species), alpha = 0.5) +
+        scale_fill_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Delta 15 N (o/oo)", y = "Frequency", title = "Penguin Delta 15 N")
+p6 <- ggplot(data = penguins_data, aes(x = `Delta 13 C (o/oo)`)) +
+        geom_histogram(aes(fill = Species), alpha = 0.5) +
+        scale_fill_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Delta 13 C (o/oo)", y = "Frequency", title = "Penguin Delta 13 C")
+grid.arrange(p5,p6,nrow=2,ncol=1)
+```
+
+## Boxplot
+```{r}
+#| warning: false
+p1 <- ggplot(data = penguins_data, aes(x = Species, y = `Culmen Length (mm)`)) +
+        geom_boxplot(aes(fill = Species), width = 0.4, show.legend = FALSE) +
+        scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Species",y = "Culmen Length (mm)") +
+        scale_x_discrete(labels = c("Adelie Penguin (Pygoscelis adeliae)" = "Adelie", 
+                                    "Chinstrap penguin (Pygoscelis antarctica)" = "Chinstrap", 
+                                    "Gentoo penguin (Pygoscelis papua)" = "Gentoo"))
+p2 <- ggplot(data = penguins_data, aes(x = Species, y = `Culmen Depth (mm)`)) +
+        geom_boxplot(aes(fill = Species), width = 0.4, show.legend = FALSE) +
+        scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Species",y = "Culmen Depth (mm)") +
+        scale_x_discrete(labels = c("Adelie Penguin (Pygoscelis adeliae)" = "Adelie", 
+                                    "Chinstrap penguin (Pygoscelis antarctica)" = "Chinstrap", 
+                                    "Gentoo penguin (Pygoscelis papua)" = "Gentoo"))
+grid.arrange(p1,p2,nrow=1,ncol=2)
+
+p3 <- ggplot(data = penguins_data, aes(x = Species, y = `Flipper Length (mm)`)) +
+        geom_boxplot(aes(fill = Species), width = 0.4, show.legend = FALSE) +
+        scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Species",y = "Flipper length (mm)") +
+        scale_x_discrete(labels = c("Adelie Penguin (Pygoscelis adeliae)" = "Adelie", 
+                                    "Chinstrap penguin (Pygoscelis antarctica)" = "Chinstrap", 
+                                    "Gentoo penguin (Pygoscelis papua)" = "Gentoo"))
+p4 <- ggplot(data = penguins_data, aes(x = Species, y = `Body Mass (g)`)) +
+        geom_boxplot(aes(fill = Species), width = 0.4, show.legend = FALSE) +
+        scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Species",y = "Body Mass (g)") +
+        scale_x_discrete(labels = c("Adelie Penguin (Pygoscelis adeliae)" = "Adelie", 
+                                    "Chinstrap penguin (Pygoscelis antarctica)" = "Chinstrap", 
+                                    "Gentoo penguin (Pygoscelis papua)" = "Gentoo"))
+grid.arrange(p3,p4,nrow=1,ncol=2)
+
+p5 <- ggplot(data = penguins_data, aes(x = Species, y = `Delta 15 N (o/oo)`)) +
+        geom_boxplot(aes(fill = Species), width = 0.4, show.legend = FALSE) +
+        scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Species",y = "Delta 15 N (o/oo)") +
+        scale_x_discrete(labels = c("Adelie Penguin (Pygoscelis adeliae)" = "Adelie", 
+                                    "Chinstrap penguin (Pygoscelis antarctica)" = "Chinstrap", 
+                                    "Gentoo penguin (Pygoscelis papua)" = "Gentoo"))
+p6 <- ggplot(data = penguins_data, aes(x = Species, y = `Delta 13 C (o/oo)`)) +
+        geom_boxplot(aes(fill = Species), width = 0.4, show.legend = FALSE) +
+        scale_color_manual(values = c("pink","lightgreen","lightblue")) +
+        labs(x = "Species", y = "Delta 13 C (o/oo)") +
+        scale_x_discrete(labels = c("Adelie Penguin (Pygoscelis adeliae)" = "Adelie", 
+                                    "Chinstrap penguin (Pygoscelis antarctica)" = "Chinstrap", 
+                                    "Gentoo penguin (Pygoscelis papua)" = "Gentoo"))
+grid.arrange(p5,p6,nrow=1,ncol=2)
+```
+
+
+
+
